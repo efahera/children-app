@@ -30,7 +30,7 @@ class Command(BaseCommand):
                     phone=self.get_contact_parent1(temp.temp_parent1Mobile, temp.temp_parent1Phone),
                     email=temp.temp_parent1Email,
                     birthIC=temp.temp_parent1ID,
-                    birthCountry=temp.temp_parent1Citizenship,
+                    birthCountry=self.get_birthCode(temp.temp_parent1Citizenship), 
                     occupation=temp.temp_parent1Occupation,
                     relationship=temp.temp_parent1Relationship,
                     isAllowPickup=temp.temp_parent1MainContact,
@@ -50,7 +50,7 @@ class Command(BaseCommand):
                     phone=self.get_contact_parent2(temp.temp_parent2Mobile, temp.temp_parent2Phone),
                     email=temp.temp_parent2Email,
                     birthIC=temp.temp_parent2ID,
-                    birthCountry=temp.temp_parent2Citizenship,
+                    birthCountry=self.get_birthCode(temp.temp_parent2Citizenship),  
                     occupation=temp.temp_parent2Occupation,
                     relationship=temp.temp_parent2Relationship,
                     isAllowPickup=temp.temp_parent2MainContact,
@@ -69,7 +69,7 @@ class Command(BaseCommand):
                     phone=self.get_contact_parent3(temp.temp_parent3Mobile, temp.temp_parent3Phone),
                     email=temp.temp_parent3Email,
                     birthIC=temp.temp_parent3ID,
-                    birthCountry=temp.temp_parent3Citizenship,
+                    birthCountry=self.get_birthCode(temp.temp_parent3Citizenship),  
                     occupation=temp.temp_parent3Occupation,
                     relationship=temp.temp_parent3Relationship,
                     isAllowPickup=temp.temp_parent3MainContact,
@@ -101,21 +101,105 @@ class Command(BaseCommand):
 
     def get_contact_parent1(self, mobile, phone):
         if mobile:
-            return mobile
-        else:
-            return phone
+            if mobile[3] != '-':
+                if mobile[0] == '1':
+                    return '+60' + mobile
+                elif mobile[0] == '0':
+                    return '+6' + mobile
+                return mobile
+
+            elif mobile[3] == '-':
+                mobile = mobile[:3] + mobile[4:]  
+                if mobile[0] == '1':
+                    return '+60' + mobile
+                elif mobile[0] == '0':
+                    return '+6' + mobile
+                return mobile
+
+        elif phone:
+            if phone[3] != '-':
+                if phone[0] == '1':
+                    return '+60' + phone
+                elif phone[0] == '0':
+                    return '+6' + phone
+                return phone
+
+            elif phone[3] == '-':
+                phone = phone[:3] + phone[4:]  
+                if phone[0] == '1':
+                    return '+60' + phone
+                elif phone[0] == '0':
+                    return '+6' + phone
+                return phone
+        return ''
 
     def get_contact_parent2(self, mobile, phone):
         if mobile:
-            return mobile
-        else:
-            return phone
+            if mobile[3] != '-':
+                if mobile[0] == '1':
+                    return '+60' + mobile
+                elif mobile[0] == '0':
+                    return '+6' + mobile
+                return mobile
+
+            elif mobile[3] == '-':
+                mobile = mobile[:3] + mobile[4:]  
+                if mobile[0] == '1':
+                    return '+60' + mobile
+                elif mobile[0] == '0':
+                    return '+6' + mobile
+                return mobile
+
+        elif phone:
+            if phone[3] != '-':
+                if phone[0] == '1':
+                    return '+60' + phone
+                elif phone[0] == '0':
+                    return '+6' + phone
+                return phone
+
+            elif phone[3] == '-':
+                phone = phone[:3] + phone[4:]  
+                if phone[0] == '1':
+                    return '+60' + phone
+                elif phone[0] == '0':
+                    return '+6' + phone
+                return phone
+        return ''
 
     def get_contact_parent3(self, mobile, phone):
         if mobile:
-            return mobile
-        else:
-            return phone
+            if mobile[3] != '-':
+                if mobile[0] == '1':
+                    return '+60' + mobile
+                elif mobile[0] == '0':
+                    return '+6' + mobile
+                return mobile
+
+            elif mobile[3] == '-':
+                mobile = mobile[:3] + mobile[4:]  
+                if mobile[0] == '1':
+                    return '+60' + mobile
+                elif mobile[0] == '0':
+                    return '+6' + mobile
+                return mobile
+
+        elif phone:
+            if phone[3] != '-':
+                if phone[0] == '1':
+                    return '+60' + phone
+                elif phone[0] == '0':
+                    return '+6' + phone
+                return phone
+                
+            elif phone[3] == '-':
+                phone = phone[:3] + phone[4:]  
+                if phone[0] == '1':
+                    return '+60' + phone
+                elif phone[0] == '0':
+                    return '+6' + phone
+                return phone
+        return ''
 
     def get_relationship(self, relationship, mother_address, father_address):
         if relationship == 'mother':
@@ -153,3 +237,7 @@ class Command(BaseCommand):
             ]))
         return ''
 
+    def get_birthCode(self, birthCountry):
+        if birthCountry.lower() == 'malaysian' or birthCountry.lower() == 'malaysia':
+            return 'MY'
+        return birthCountry
