@@ -75,6 +75,8 @@ class Command(BaseCommand):
                     isAllowPickup=temp.temp_parent3MainContact,
                     isBillable=temp.temp_parent3AuthorisedPickUp,
                     isPrimary=temp.temp_parent3EmailInvoiceReceipt,
+                    address=self.get_address_line(temp.temp_address1Line1, temp.temp_address1Line2), #added line
+                    postcode=temp.temp_address1PostalCode, #added line
                 )   
 
     def get_first_name(self, full_name):
@@ -202,9 +204,9 @@ class Command(BaseCommand):
         return ''
 
     def get_relationship(self, relationship, mother_address, father_address):
-        if relationship == 'mother':
+        if relationship.lower() == 'mother':
             return self.mother_full_add(mother_address)
-        elif relationship == 'father':
+        elif relationship.lower() == 'father':
             return self.father_full_add(father_address)
         else:
             return '' 
@@ -241,3 +243,11 @@ class Command(BaseCommand):
         if birthCountry.lower() == 'malaysian' or birthCountry.lower() == 'malaysia':
             return 'MY'
         return birthCountry
+
+    def get_address_line(self, address1Line1, address1Line2):
+        combined_address = []
+        if address1Line1:
+            combined_address.append(address1Line1)
+        if address1Line2:
+            combined_address.append(address1Line2)
+        return ' '.join(combined_address)
