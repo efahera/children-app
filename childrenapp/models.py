@@ -402,142 +402,174 @@ class CoreServiceFamily(models.Model):
     CSFTemporary = models.ForeignKey(Temporary, on_delete=models.CASCADE, blank=True, null=True)
     CSFChild = models.ForeignKey(Child, on_delete=models.CASCADE, blank=True, null=True)
 
-    # CSFamParent1 = models.ForeignKey(Parent1, on_delete=models.CASCADE, blank=True)
-    # CSFamParent2 = models.ForeignKey(Parent2, on_delete=models.CASCADE, blank=True)
-    # CSFamParent3 = models.ForeignKey(Parent3, on_delete=models.CASCADE, blank=True)
-    # CSFamMotherAdd = models.ForeignKey(MotherAdd, on_delete=models.CASCADE, blank=True)
-    # CSFamFatherAdd = models.ForeignKey(FatherAdd, on_delete=models.CASCADE, blank=True)
-    # CSFAddress = models.ForeignKey(Address, on_delete=models.CASCADE, blank=True)
+class CoreServiceChildrenMedicalContact(models.Model):
 
-    # def save(self, *args, **kwargs):
-    #     full_address = []
+    userId = models.CharField(max_length=250, blank=True)
+    contactType = models.CharField(max_length=250, blank=True)
+    specialtyType = models.CharField(max_length=250, blank=True)
+    name = models.CharField(max_length=250, blank=True)
+    phone = models.CharField(max_length=250, blank=True)
+    address = models.CharField(max_length=250, blank=True)
+    state = models.CharField(max_length=250, blank=True)
+    country = models.CharField(max_length=250, blank=True)
+    postcode = models.CharField(max_length=250, blank=True)
+    notes = models.CharField(max_length=250, blank=True)
+    enterBy = models.CharField(max_length=250, blank=True)
+    createdAt = models.DateTimeField("createdAt", auto_now_add=True)
+    updatedAt = models.DateTimeField("updatedAt", auto_now=True)
+    child_id = models.CharField(max_length=250, blank=True)
+    isArchived = models.CharField(max_length=250, blank=True)
 
-    #     if self.CSFamParent1_id is not None:  
-    #         parent1 = Parent1.objects.filter(id=self.CSFamParent1_id).first()
+    # Foreign Key
+    CSCMCTemporary = models.ForeignKey(Temporary, on_delete=models.CASCADE, blank=True, null=True)
+    CSCMCChild = models.ForeignKey(Child, on_delete=models.CASCADE, blank=True, null=True)
 
-    #         if parent1 and parent1.parent1Name:
+# class CoreServiceChildren(models.Model):
 
-    #             names = parent1.parent1Name.split()
-    #             if len(names) == 2:
-    #                 self.firstName = names[0]
-    #                 self.lastName = names[1]
-    #             elif len(names) == 3:
-    #                 self.firstName = ' '.join(names[1:])
-    #                 self.lastName = names[0]
-    #             elif len(names) == 4:
-    #                 self.firstName = ' '.join(names[2:])
-    #                 self.lastName = names[1]
+#     id
+#     createdAt
+#     updatedAt
+#     tenantId
+#     branchId
+#     firstName
+#     lastName
+#     fullName
+#     birthCertNo
+#     birthIC
+#     birthDate
+#     birthOrder
+#     birthCountry
+#     ethnicity
+#     religion
+#     siblings
+#     profileImage
+#     gender
+#     age
+#     isActive
+#     isArchived
+#     notes
+#     isEnRolled
+#     admissionId
+#     isPresentToday
+#     isInToday
+#     isOutToday
+#     isWithdraw
+#     isMarkedWithdraw
+#     withDrawDate
+#     withDrawReason
+#     isMarkedPromote
+#     PromoteDate
+#     PromoteReason
+#     creator
 
-    #         self.phone = self.CSFamParent1.parent1Mobile
-    #         self.email = self.CSFamParent1.parent1Email
-    #         self.birthIC = self.CSFamParent1.parent1ID
-    #         self.birthCountry = self.CSFamParent1.parent1Citizenship
-    #         self.occupation = self.CSFamParent1.parent1Occupation
-    #         self.relationship = self.CSFamParent1.parent1Relationship
-    #         self.isAllowPickup = self.CSFamParent1.parent1AuthorisedPickUp
-    #         self.isBillable = self.CSFamParent1.parent1EmailInvoiceReceipt
-    #         self.isPrimary = self.CSFamParent1.parent1MainContact            
+# class CoreServiceChildrenSibling(models.Model):
 
-    #     elif self.CSFamParent2_id is not None:  
-    #         parent2 = Parent2.objects.filter(id=self.CSFamParent2_id).first()
-    #         if parent2 and parent2.parent2Name:
-    #             names = parent2.parent2Name.split()
+#     id
+#     child_id
+#     sibling_id
 
-    #             if len(names) == 2:
-    #                 self.firstName = names[0]
-    #                 self.lastName = names[1]
-    #             elif len(names) == 3:
-    #                 self.firstName = ' '.join(names[1:])
-    #                 self.lastName = names[0]
-    #             elif len(names) == 4:
-    #                 self.firstName = ' '.join(names[2:])
-    #                 self.lastName = names[1]
+# class CoreServiceChildrenAllergies(models.Model):
 
-    #         self.phone = self.CSFamParent2.parent2Mobile
-    #         self.email = self.CSFamParent2.parent2Email
-    #         self.birthIC = self.CSFamParent2.parent2ID
-    #         self.birthCountry = self.CSFamParent2.parent2Citizenship
-    #         self.occupation = self.CSFamParent2.parent2Occupation
-    #         self.relationship = self.CSFamParent2.parent2Relationship
-    #         self.isAllowPickup = self.CSFamParent2.parent2AuthorisedPickUp
-    #         self.isBillable = self.CSFamParent2.parent2EmailInvoiceReceipt
-    #         self.isPrimary = self.CSFamParent2.parent2MainContact
+#     id
+#     allergyType
+#     allergies
+#     allergicPrevent
+#     allergicSyndrome
+#     allergicAction
+#     haveMedicine
+#     enterBy
+#     created_at
+#     updated_at
+#     child_id
 
-    #     elif self.CSFamParent3_id is not None:  
-    #         parent3 = Parent3.objects.filter(id=self.CSFamParent3_id).first()
-    #         if parent3 and parent3.parent3Name:
-    #             names = parent3.parent3Name.split()
+# class CoreServiceChildrenMedicines(models.Model):
 
-    #             if len(names) == 2:
-    #                 self.firstName = names[0]
-    #                 self.lastName = names[1]
-    #             elif len(names) == 3:
-    #                 self.firstName = ' '.join(names[1:])
-    #                 self.lastName = names[0]
-    #             elif len(names) == 4:
-    #                 self.firstName = ' '.join(names[2:])
-    #                 self.lastName = names[1]
+#     id
+#     type
+#     name
+#     purpose
+#     dosage
+#     carriedBy
+#     isForAllergic
+#     remarks
+#     enterBy
+#     createdAt
+#     updatedAt
+#     allergic_id
+#     child_id
+#     endDate
+#     frequency
+#     startDate
+#     medTime
+#     takenWhen
+#     isArchived
 
-    #         self.phone = self.CSFamParent3.parent3Mobile
-    #         self.email = self.CSFamParent3.parent3Email
-    #         self.birthIC = self.CSFamParent3.parent3ID
-    #         self.birthCountry = self.CSFamParent3.parent3Citizenship
-    #         self.occupation = self.CSFamParent3.parent3Occupation
-    #         self.relationship = self.CSFamParent3.parent3Relationship
-    #         self.isAllowPickup = self.CSFamParent3.parent3AuthorisedPickUp
-    #         self.isBillable = self.CSFamParent3.parent3EmailInvoiceReceipt
-    #         self.isPrimary = self.CSFamParent3.parent3MainContact
+# class CoreServiceChildrenEnrollment(models.Model):
 
-    #     # address, postcode
-    #     if self.relationship == 'mother' and self.CSFamMotherAdd:
-    #         full_address.append(self.CSFamMotherAdd.motherAddUnit)
-    #         full_address.append(self.CSFamMotherAdd.motherAddStreet)
-    #         full_address.append(self.CSFamMotherAdd.motherAddBuilding)
-    #         full_address.append(self.CSFamMotherAdd.motherAddBlock)
+#     id
+#     tenantId
+#     branchId
+#     academyYear
+#     enrollStartDate
+#     enrollEndDate
+#     status
+#     active
+#     isSpecial
+#     notes
+#     enrollBy
+#     created_at
+#     updated_at
+#     children_id
+#     classroom_id
+#     program_id
 
-    #         self.postcode = self.CSFamMotherAdd.motherAddPostalCode
+# class CoreServiceClassrooms(models.Model):
 
-    #     elif self.relationship == 'father' and self.CSFamFatherAdd:
-    #         full_address.append(self.CSFamFatherAdd.fatherAddUnit)
-    #         full_address.append(self.CSFamFatherAdd.fatherAddStreet)
-    #         full_address.append(self.CSFamFatherAdd.fatherAddBuilding)
-    #         full_address.append(self.CSFamFatherAdd.fatherAddBlock)
+#     id
+#     createdAt
+#     updatedAt
+#     tenantId
+#     branchId
+#     name
+#     maxCapacity
+#     availableCapacity
+#     academyYear
+#     isSpecial
+#     active
+#     isArchived
+#     enteredBy
+#     programs_id
 
-    #         self.postcode = self.CSFamFatherAdd.fatherAddPostalCode
+# class CoreServiceClassroomChildren(models.Model):
 
-    #     self.address = ', '.join(part for part in full_address if part)
+#     id
+#     createdAt
+#     updatedAt
+#     tenantId
+#     branchId
+#     academyYear
+#     academyMonth
+#     isSpecial
+#     isActive
+#     isArchived
+#     isMarkedWithdraw
+#     withDrawDate
+#     withDrawReason
+#     isMarkedPromote
+#     PromoteDate
+#     PromoteReason
+#     createdAt1
+#     updatedAt1
+#     assignedBy_id
+#     child_id
+#     classroom_id
 
-    #     super(CoreServiceFamily, self).save(*args, **kwargs)
+# class CoreServiceChildrenFamily(models.Model):
 
-    # def save(self, *args, **kwargs):
-    #     self.update_parents()
-    #     self.update_address()
-    #     super(CoreServiceFamily, self).save(*args, **kwargs)
-
-    # def update_address(self):
-    #     if self.CSFamMotherAdd:
-    #         self.address = ' '.join(filter(None, [
-    #             self.CSFamMotherAdd.motherAddUnit,
-    #             self.CSFamMotherAdd.motherAddStreet,
-    #             self.CSFamMotherAdd.motherAddBuilding,
-    #             self.CSFamMotherAdd.motherAddBlock,
-    #         ]))
-    #         self.postcode = self.CSFamMotherAdd.motherAddPostalCode
-    #     elif self.CSFamFatherAdd:
-    #         self.address = ' '.join(filter(None, [
-    #             self.CSFamFatherAdd.fatherAddUnit,
-    #             self.CSFamFatherAdd.fatherAddStreet,
-    #             self.CSFamFatherAdd.fatherAddBuilding,
-    #             self.CSFamFatherAdd.fatherAddBlock,
-    #         ]))
-    #         self.postcode = self.CSFamFatherAdd.fatherAddPostalCode
-
-    # def set_name_fields(self, full_name):
-    #     names = full_name.split()
-    #     if len(names) == 2:
-    #         self.firstName, self.lastName = names
-    #     elif len(names) == 3:
-    #         self.lastName, self.firstName = names[0], ' '.join(names[1:])
-    #     elif len(names) == 4:
-    #         self.lastName, self.firstName = names[1], ' '.join(names[2:])
+#     id
+#     tenantId
+#     branchId
+#     child_id
+#     user_id
+#     family_id
 

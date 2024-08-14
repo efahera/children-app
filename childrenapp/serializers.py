@@ -241,9 +241,18 @@ class TemporarySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class CoreServiceFamilySerializer(serializers.ModelSerializer):
-    created_at = serializers.CharField(read_only=True)
-    updated_at = serializers.CharField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = CoreServiceFamily
+        fields = '__all__'
+
+class CoreServiceChildrenMedicalContactSerializers(serializers.ModelSerializer):
+
+    createdAt = serializers.DateTimeField(read_only=True)
+    updatedAt = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = CoreServiceChildrenMedicalContact
         fields = '__all__'
