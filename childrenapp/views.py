@@ -2,7 +2,7 @@
 
 import os
 import csv
-from .models import Child, Siblings, Health, School, PrimaryFees, SecondaryFees, Refund, Parent1, Parent2, Parent3, MotherAdd, FatherAdd, Address, Emergency, Temporary, CoreServiceFamily, CoreServiceChildrenMedicalContact
+from .models import Child, Siblings, Health, School, PrimaryFees, SecondaryFees, Refund, Parent1, Parent2, Parent3, MotherAdd, FatherAdd, Address, Emergency, Temporary, CoreServiceFamily, CoreServiceChildrenMedicalContact, Staff
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.db import connection
@@ -18,6 +18,7 @@ class UploadChildrenCSVData(APIView):
     def post(self, request, *args, **kwargs):
         CoreServiceFamily.objects.all().delete()
         CoreServiceChildrenMedicalContact.objects.all().delete()
+        Staff.objects.all().delete()
 
         with connection.cursor() as cursor:
             cursor.execute("ALTER SEQUENCE childrenapp_child_id_seq RESTART WITH 1")
@@ -37,237 +38,400 @@ class UploadChildrenCSVData(APIView):
             cursor.execute("ALTER SEQUENCE childrenapp_Temporary_id_seq RESTART WITH 1")
             cursor.execute("ALTER SEQUENCE childrenapp_coreservicefamily_id_seq RESTART WITH 1") 
             cursor.execute("ALTER SEQUENCE childrenapp_coreservicechildrenmedicalcontact_id_seq RESTART WITH 1") 
+            cursor.execute("ALTER SEQUENCE childrenapp_Staff_id_seq RESTART WITH 1")
 
         csv_file = request.FILES.get('csv_file')
+        staff_csv_file = request.FILES.get('staff_csv_file')
 
-        try:            
-            self.read_PT10_B6(csv_file)
-            self.update_temporary()
-            self.update_CSF_records()
-            self.update_CSCMC_records()
+        if csv_file and staff_csv_file:
+            try:            
+                self.read_PT10_B6(csv_file)
+                self.read_staff_list(staff_csv_file)
+                self.update_temporary()
+                self.update_CSF_records()
+                self.update_CSCMC_records()
 
-            return HttpResponse("Successfully updated records.")
+                return HttpResponse("Successfully updated records from both files.")
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        elif csv_file:
+            try:
+                self.read_PT10_B6(csv_file)
+                self.update_temporary()
+                self.update_CSF_records()
+                self.update_CSCMC_records()
+
+                return HttpResponse("Successfully updated records from children CSV file.")
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        elif staff_csv_file:
+            try:
+                self.read_staff_list(staff_csv_file)
+
+                return HttpResponse("Successfully updated records from staff CSV file.")
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        else:
+            return HttpResponse("No CSV file uploaded.", status=400)
 
 # Read CSV file
     def read_PT10_B6(self, csv_file):
-        count = 0
 
         file = csv_file.read().decode('utf-8').splitlines()
-        reader = csv.DictReader(file)
+        data = file[4:]
+        reader = csv.DictReader(data)
 
         for row in reader:
+            childNo = row['No']
+            childName = row['Name']
+            childForeignName = row['Foreign Name']
+            childBirthID = row['Student ID (BC Number)']
+            childGender = row['Gender']
+            childDOB = row['Dob']
+            childAge = row['Age']
+            childRace = row['Race']
+            childCitizenship = row['Citizenship']
+            childResidentialStatus = row['Residential Status']
+            childReligion = row['Religion']
+            childMTLanguage = row['Mother Tongue language']
+            childToStaff = row['Child of a staff']
+            childHouseholdIncome = row['Household Income']
+            childSubsidyType = row['Subsidy Type']
+            childResidentialRemarks = row['Other Residential Remarks']
 
-                child, created = Child.objects.get_or_create(
-                    childNo=row['childNo'],
-                    defaults={
-                        'childName': row['childName'],
-                        'childForeignName': row['childForeignName'],
-                        'childBirthID': row['childBirthID'],
-                        'childGender': row['childGender'],
-                        'childDOB': row['childDOB'],
-                        'childAge': row['childAge'],
-                        'childRace': row['childRace'],
-                        'childCitizenship': row['childCitizenship'],
-                        'childResidentialStatus': row['childResidentialStatus'],
-                        'childReligion': row['childReligion'],
-                        'childMTLanguage': row['childMTLanguage'],
-                        'childToStaff': row['childToStaff'],
-                        'childHouseholdIncome': row['childHouseholdIncome'],
-                        'childSubsidyType': row['childSubsidyType'],
-                        'childResidentialRemarks': row['childResidentialRemarks'],
-                    }
-                )             
-                count += 1
+            child, created = Child.objects.get_or_create(
+                childNo=childNo,
+                defaults={
+                    'childName': childName,
+                    'childForeignName': childForeignName,
+                    'childBirthID': childBirthID,
+                    'childGender': childGender,
+                    'childDOB': childDOB,
+                    'childAge': childAge,
+                    'childRace': childRace,
+                    'childCitizenship': childCitizenship,
+                    'childResidentialStatus': childResidentialStatus,
+                    'childReligion': childReligion,
+                    'childMTLanguage': childMTLanguage,
+                    'childToStaff': childToStaff,
+                    'childHouseholdIncome': childHouseholdIncome,
+                    'childSubsidyType': childSubsidyType,
+                    'childResidentialRemarks': childResidentialRemarks,
+                }
+            )             
 
-                siblings, created = Siblings.objects.update_or_create(
-                    child=child,
-                    defaults={
-                        'siblings1': row['siblings1'],
-                        'siblingsRelationship1': row['siblingsRelationship1'],
-                        'siblings2': row['siblings2'],
-                        'siblingsRelationship2': row['siblingsRelationship2'],
-                        'siblings3': row['siblings3'],
-                        'siblingsRelationship3': row['siblingsRelationship3'],
-                        'siblings4': row['siblings4'],
-                        'siblingsRelationship4': row['siblingsRelationship4'],
-                    }
-                ) 
+            siblings1 = row['Siblings 1']
+            siblingsRelationship1 = row['Siblings Relationship 1']
+            siblings2 = row['Siblings 2']
+            siblingsRelationship2 = row['Siblings Relationship 2']
+            siblings3 = row['Siblings 3']
+            siblingsRelationship3 = row['Siblings Relationship 3']
+            siblings4 = row['Siblings 4']
+            siblingsRelationship4 = row['Siblings Relationship 4']
+	
+            siblings, created = Siblings.objects.update_or_create(
+                child=child,
+                defaults={
+                    'siblings1': siblings1,
+                    'siblingsRelationship1': siblingsRelationship1,
+                    'siblings2': siblings2,
+                    'siblingsRelationship2': siblingsRelationship2,
+                    'siblings3': siblings3,
+                    'siblingsRelationship3': siblingsRelationship3,
+                    'siblings4': siblings4,
+                    'siblingsRelationship4': siblingsRelationship4,
+                }
+            ) 
 
-                health, created = Health.objects.update_or_create(
-                    child=child,
-                    defaults={
-                        'healthMedCon': row['healthMedCon'],
-                        'healthVaccination': row['healthVaccination'],
-                        'healthAllergy': row['healthAllergy'],
-                        'healthSpecialDiet': row['healthSpecialDiet'],
-                        'healthSpecialNeeds': row['healthSpecialNeeds'],
-                        'healthFamDrNo': row['healthFamDrNo'],
-                    }
-                )                 
+            healthMedCon = row['Medical Conditions']
+            healthVaccination = row['Vaccination History']
+            healthAllergy = row['Allergy History (Food/Medication)']
+            healthSpecialDiet = row['Special Diet']
+            healthSpecialNeeds = row['Special Needs']
+            healthFamDrNo = row['Family Doctor Number']
 
-                school, created = School.objects.update_or_create(
-                    child=child,
-                    defaults={
-                        'schoolAdmissionDate': row['schoolAdmissionDate'],
-                        'schoolWithdrawalDate': row['schoolWithdrawalDate'],
-                        'schoolProgramType': row['schoolProgramType'],
-                        'schoolClassname': row['schoolClassname'],
-                        'schoolClassSession': row['schoolClassSession'],
-                        'schoolClassLevel': row['schoolClassLevel'],
-                        'schoolTransportationNo': row['schoolTransportationNo'],
-                    }
-                ) 
+            health, created = Health.objects.update_or_create(
+                child=child,
+                defaults={
+                    'healthMedCon': healthMedCon,
+                    'healthVaccination': healthVaccination,
+                    'healthAllergy': healthAllergy,
+                    'healthSpecialDiet': healthSpecialDiet,
+                    'healthSpecialNeeds': healthSpecialNeeds,
+                    'healthFamDrNo': healthFamDrNo,
+                }
+            )                 
 
-                primaryFees, created = PrimaryFees.objects.update_or_create(
-                    child=child,
-                    defaults={
-                        'prieesPaymentMethod': row['prieesPaymentMethod'],
-                        'prifeesBankName': row['prifeesBankName'],
-                        'prifeesBankAccHolder': row['prifeesBankAccHolder'],
-                        'prifeesBankAccCode': row['prifeesBankAccCode'],
-                        'prifeesBranchCode': row['prifeesBranchCode'],
-                        'prifeesBankAccNumber': row['prifeesBankAccNumber'],
-                        'prifeesApprovalDate': row['prifeesApprovalDate'],
-                        'prifeesAttentionTo': row['prifeesAttentionTo'],
-                        'prifeesPayeeID': row['prifeesPayeeID'],
-                        'prifeesAmount': row['prifeesAmount'],
-                    }
-                ) 
+            schoolAdmissionDate = row['Admission Date']
+            schoolWithdrawalDate = row['Withdrawal date']
+            schoolProgramType = row['Program Type']
+            schoolClassname = row['Class name']
+            schoolClassSession = row['Class Session']
+            schoolClassLevel = row['Class level']
+            schoolTransportationNo = row['Transportation Number']
 
-                secondaryFees, created = SecondaryFees.objects.update_or_create(
-                    child=child,
-                    defaults={
-                        'secfeesPaymentMethod': row['secfeesPaymentMethod'],
-                        'secfeesBankName': row['secfeesBankName'],
-                        'secfeesBankAccHolder': row['secfeesBankAccHolder'],
-                        'secfeesBankAccCode': row['secfeesBankAccCode'],
-                        'secfeesBranchCode': row['secfeesBranchCode'],
-                        'secfeesBankAccNo': row['secfeesBankAccNo'],
-                        'secfeesPayeeID': row['secfeesPayeeID'],
-                        'secfeesApprovalDate': row['secfeesApprovalDate'],
-                        'secfeesAttentionTo': row['secfeesAttentionTo'],
-                    }
-                ) 
+            school, created = School.objects.update_or_create(
+                child=child,
+                defaults={
+                    'schoolAdmissionDate': schoolAdmissionDate,
+                    'schoolWithdrawalDate': schoolWithdrawalDate,
+                    'schoolProgramType': schoolProgramType,
+                    'schoolClassname': schoolClassname,
+                    'schoolClassSession': schoolClassSession,
+                    'schoolClassLevel': schoolClassLevel,
+                    'schoolTransportationNo': schoolTransportationNo,
+                }
+            ) 
 
-                refund, created = Refund.objects.update_or_create(
-                    child=child,
-                    defaults={
-                        'refundPaymentMethod': row['refundPaymentMethod'],
-                        'refundBankName': row['refundBankName'],
-                        'refundBankAccHolder': row['refundBankAccHolder'],
-                        'refundBankAccCode': row['refundBankAccCode'],
-                        'refundBranchCode': row['refundBranchCode'],
-                        'refundBankAccNo': row['refundBankAccNo'],
-                        'refundApprovalReference': row['refundApprovalReference'],
-                        'refundApprovalDate': row['refundApprovalDate'],
-                        'refundDepositOpt': row['refundDepositOpt'],
-                    }
-                ) 
+            prifeesPaymentMethod = row['Primary Payment Method']
+            prifeesBankName = row['Primary Bank Name']
+            prifeesBankAccHolder = row['Primary Bank Account Holder']
+            prifeesBankAccCode = row['Primary Bank Account Code']
+            prifeesBranchCode = row['Primary Branch Code']
+            prifeesBankAccNumber = row['Primary Bank Account Number']
+            prifeesApprovalDate = row['Primary Payment Method Approval Date']
+            prifeesAttentionTo = row['Primary Attention To']
+            prifeesPayeeID = row['Primary Payee ID']
+            prifeesAmount = row['Primary Amount']
 
-                parent1, created = Parent1.objects.update_or_create(
-                    child=child,
-                    defaults={
-                        'parent1Relationship': row['parent1Relationship'],
-                        'parent1Name': row['parent1Name'],
-                        'parent1Email': row['parent1Email'],
-                        'parent1Mobile': row['parent1Mobile'],
-                        'parent1Phone': row['parent1Phone'],
-                        'parent1ID': row['parent1ID'],
-                        'parent1Race': row['parent1Race'],
-                        'parent1Citizenship': row['parent1Citizenship'],
-                        'parent1Occupation': row['parent1Occupation'],
-                        'parent1MainContact': row['parent1MainContact'],
-                        'parent1AuthorisedPickUp': row['parent1AuthorisedPickUp'],
-                        'parent1EmailInvoiceReceipt': row['parent1EmailInvoiceReceipt'],
-                        'parent1EmailCheckIn': row['parent1EmailCheckIn'],
-                    }
-                ) 
+            primaryFees, created = PrimaryFees.objects.update_or_create(
+                child=child,
+                defaults={
+                    'prifeesPaymentMethod': prifeesPaymentMethod,
+                    'prifeesBankName': prifeesBankName,
+                    'prifeesBankAccHolder': prifeesBankAccHolder,
+                    'prifeesBankAccCode': prifeesBankAccCode,
+                    'prifeesBranchCode': prifeesBranchCode,
+                    'prifeesBankAccNumber': prifeesBankAccNumber,
+                    'prifeesApprovalDate': prifeesApprovalDate,
+                    'prifeesAttentionTo': prifeesAttentionTo,
+                    'prifeesPayeeID': prifeesPayeeID,
+                    'prifeesAmount': prifeesAmount,
+                }
+            ) 
 
-                parent2, created = Parent2.objects.update_or_create(
-                    child=child,
-                    defaults={
-                        'parent2Relationship': row['parent2Relationship'],
-                        'parent2Name': row['parent2Name'],
-                        'parent2Email': row['parent2Email'],
-                        'parent2Mobile': row['parent2Mobile'],
-                        'parent2Phone': row['parent2Phone'],
-                        'parent2ID': row['parent2ID'],
-                        'parent2Race': row['parent2Race'],
-                        'parent2Citizenship': row['parent2Citizenship'],
-                        'parent2Occupation': row['parent2Occupation'],
-                        'parent2MainContact': row['parent2MainContact'],
-                        'parent2AuthorisedPickUp': row['parent2AuthorisedPickUp'],
-                        'parent2EmailInvoiceReceipt': row['parent2EmailInvoiceReceipt'],
-                        'parent2EmailCheckIn': row['parent2EmailCheckIn'],
-                    }
-                ) 
+            secfeesPaymentMethod = row['Secondary Payment Method']
+            secfeesBankName = row['Secondary Bank Name']
+            secfeesBankAccHolder = row['Secondary Bank Account Holder']
+            secfeesBankAccCode = row['Secondary Bank Account Code']
+            secfeesBranchCode = row['Secondary Branch Code']
+            secfeesBankAccNo = row['Secondary Bank Account Number']
+            secfeesPayeeID = row['Secondary Payee ID']
+            secfeesApprovalDate = row['Secondary Payment Method Approval Date']
+            secfeesAttentionTo = row['Secondary Attention To']
 
-                parent3, created = Parent3.objects.update_or_create(
-                    child=child,
-                    defaults={
-                        'parent3Relationship': row['parent3Relationship'],
-                        'parent3Name': row['parent3Name'],
-                        'parent3Email': row['parent3Email'],
-                        'parent3Mobile': row['parent3Mobile'],
-                        'parent3Phone': row['parent3Phone'],
-                        'parent3ID': row['parent3ID'],
-                        'parent3Race': row['parent3Race'],
-                        'parent3Citizenship': row['parent3Citizenship'],
-                        'parent3Occupation': row['parent3Occupation'],
-                        'parent3MainContact': row['parent3MainContact'],
-                        'parent3AuthorisedPickUp': row['parent3AuthorisedPickUp'],
-                        'parent3EmailInvoiceReceipt': row['parent3EmailInvoiceReceipt'],
-                        'parent3EmailCheckIn': row['parent3EmailCheckIn'],
-                    }
-                ) 
+            secondaryFees, created = SecondaryFees.objects.update_or_create(
+                child=child,
+                defaults={
+                    'secfeesPaymentMethod': secfeesPaymentMethod,
+                    'secfeesBankName': secfeesBankName,
+                    'secfeesBankAccHolder': secfeesBankAccHolder,
+                    'secfeesBankAccCode': secfeesBankAccCode,
+                    'secfeesBranchCode': secfeesBranchCode,
+                    'secfeesBankAccNo': secfeesBankAccNo,
+                    'secfeesPayeeID': secfeesPayeeID,
+                    'secfeesApprovalDate': secfeesApprovalDate,
+                    'secfeesAttentionTo': secfeesAttentionTo,
+                }
+            ) 
 
-                motherAdd, created = MotherAdd.objects.update_or_create(
-                    child=child,
-                    defaults={
-                        'motherAddBlock': row['motherAddBlock'],
-                        'motherAddBuilding': row['motherAddBuilding'],
-                        'motherAddStreet': row['motherAddStreet'],
-                        'motherAddUnit': row['motherAddUnit'],
-                        'motherAddPostalCode': row['motherAddPostalCode'],
-                        'motherAddTransport': row['motherAddTransport'],
-                    }
-                ) 
+            refundPaymentMethod = row['Refund Payment Method']
+            refundBankName = row['Refund Bank Name']
+            refundBankAccHolder = row['Refund Bank Account Holder']
+            refundBankAccCode = row['Refund Bank Account Code']
+            refundBranchCode = row['Refund Branch Code']
+            refundBankAccNo = row['Refund Bank Account No.']
+            refundApprovalReference = row['Refund Payment Method Approval Reference']
+            refundApprovalDate = row['Refund Payment Method Approval Date']
+            refundDepositOpt = row['Refund Deposit Option']
 
-                fatherAdd, created = FatherAdd.objects.update_or_create(
-                    child=child,
-                    defaults={
-                        'fatherAddBlock': row['fatherAddBlock'],
-                        'fatherAddBuilding': row['fatherAddBuilding'],
-                        'fatherAddStreet': row['fatherAddStreet'],
-                        'fatherAddUnit': row['fatherAddUnit'],
-                        'fatherAddPostalCode': row['fatherAddPostalCode'],
-                        'fatherAddTransport': row['fatherAddTransport'],
-                    }
-                ) 
+            refund, created = Refund.objects.update_or_create(
+                child=child,
+                defaults={
+                    'refundPaymentMethod': refundPaymentMethod,
+                    'refundBankName': refundBankName,
+                    'refundBankAccHolder': refundBankAccHolder,
+                    'refundBankAccCode': refundBankAccCode,
+                    'refundBranchCode': refundBranchCode,
+                    'refundBankAccNo': refundBankAccNo,
+                    'refundApprovalReference': refundApprovalReference,
+                    'refundApprovalDate': refundApprovalDate,
+                    'refundDepositOpt': refundDepositOpt,
+                }
+            ) 
 
-                address, created = Address.objects.update_or_create(
-                    child=child,
-                    defaults={
-                        'address1Line1': row['address1Line1'],
-                        'address1Line2': row['address1Line2'],
-                        'address1PostalCode': row['address1PostalCode'],
-                        'address1Transport': row['address1Transport'],
-                    }
-                ) 
+            parent1Relationship = row['Parent Relationship 1']
+            parent1Name = row['Name 1']
+            parent1Email = row['Email 1']
+            parent1Mobile = row['Mobile No. 1']
+            parent1Phone = row['Phone No. 1']
+            parent1ID = row['NRIC /ID 1']
+            parent1Race = row['Race 1']
+            parent1Citizenship = row['Citizenship 1']
+            parent1Occupation = row['Occupation 1']
+            parent1MainContact = row['Main contact 1']
+            parent1AuthorisedPickUp = row['Authorised Pick Up Person 1']
+            parent1EmailInvoiceReceipt = row['Email Invoice Receipt 1']
+            parent1EmailCheckIn = row['Email checkin 1']
 
-                emergency, created = Emergency.objects.update_or_create(
-                    child=child,
-                    defaults={
-                        'emergency1Relationship': row['emergency1Relationship'],
-                        'emergency1Name': row['emergency1Name'],
-                        'emergency1Mobile': row['emergency1Mobile'],
-                        'emergency1Phone': row['emergency1Phone'],
-                        'emergency1Email': row['emergency1Email'],
-                    }
-                ) 
+            parent1, created = Parent1.objects.update_or_create(
+                child=child,
+                defaults={
+                    'parent1Relationship': parent1Relationship,
+                    'parent1Name': parent1Name,
+                    'parent1Email': parent1Email,
+                    'parent1Mobile': parent1Mobile,
+                    'parent1Phone': parent1Phone,
+                    'parent1ID': parent1ID,
+                    'parent1Race': parent1Race,
+                    'parent1Citizenship': parent1Citizenship,
+                    'parent1Occupation': parent1Occupation,
+                    'parent1MainContact': parent1MainContact,
+                    'parent1AuthorisedPickUp': parent1AuthorisedPickUp,
+                    'parent1EmailInvoiceReceipt': parent1EmailInvoiceReceipt,
+                    'parent1EmailCheckIn': parent1EmailCheckIn,
+                }
+            ) 
+
+            parent2Relationship = row['Parent Relationship 2']
+            parent2Name = row['Name 2']
+            parent2Email = row['Email 2']
+            parent2Mobile = row['Mobile No. 2']
+            parent2Phone = row['Phone No. 2']
+            parent2ID = row['NRIC /ID 2']
+            parent2Race = row['Race 2']
+            parent2Citizenship = row['Citizenship 2']
+            parent2Occupation = row['Occupation 2']
+            parent2MainContact = row['Main contact 2']
+            parent2AuthorisedPickUp = row['Authorised Pick Up Person 2']
+            parent2EmailInvoiceReceipt = row['Email Invoice Receipt 2']
+            parent2EmailCheckIn = row['Email checkin 2']
+
+            parent2, created = Parent2.objects.update_or_create(
+                child=child,
+                defaults={
+                    'parent2Relationship': parent2Relationship,
+                    'parent2Name': parent2Name,
+                    'parent2Email': parent2Email,
+                    'parent2Mobile': parent2Mobile,
+                    'parent2Phone': parent2Phone,
+                    'parent2ID': parent2ID,
+                    'parent2Race': parent2Race,
+                    'parent2Citizenship': parent2Citizenship,
+                    'parent2Occupation': parent2Occupation,
+                    'parent2MainContact': parent2MainContact,
+                    'parent2AuthorisedPickUp': parent2AuthorisedPickUp,
+                    'parent2EmailInvoiceReceipt': parent2EmailInvoiceReceipt,
+                    'parent2EmailCheckIn': parent2EmailCheckIn,
+                }
+            ) 
+
+            parent3Relationship = row['Parent Relationship 3']
+            parent3Name = row['Name 3']
+            parent3Email = row['Email 3']
+            parent3Mobile = row['Mobile No. 3']
+            parent3Phone = row['Phone No. 3']
+            parent3ID = row['NRIC /ID 3']
+            parent3Race = row['Race 3']
+            parent3Citizenship = row['Citizenship 3']
+            parent3Occupation = row['Occupation 3']
+            parent3MainContact = row['Main contact 3']
+            parent3AuthorisedPickUp = row['Authorised Pick Up Person 3']
+            parent3EmailInvoiceReceipt = row['Email Invoice Receipt 3']
+            parent3EmailCheckIn = row['Email checkin 3']
+
+            parent3, created = Parent3.objects.update_or_create(
+                child=child,
+                defaults={
+                    'parent3Relationship': parent3Relationship,
+                    'parent3Name': parent3Name,
+                    'parent3Email': parent3Email,
+                    'parent3Mobile': parent3Mobile,
+                    'parent3Phone': parent3Phone,
+                    'parent3ID': parent3ID,
+                    'parent3Race': parent3Race,
+                    'parent3Citizenship': parent3Citizenship,
+                    'parent3Occupation': parent3Occupation,
+                    'parent3MainContact': parent3MainContact,
+                    'parent3AuthorisedPickUp': parent3AuthorisedPickUp,
+                    'parent3EmailInvoiceReceipt': parent3EmailInvoiceReceipt,
+                    'parent3EmailCheckIn': parent3EmailCheckIn,
+                }
+            ) 
+
+            motherAddBlock = row['Mother Block no.']
+            motherAddBuilding = row['Mother Building']
+            motherAddStreet = row['Mother Street']
+            motherAddUnit = row['Mother Unit']
+            motherAddPostalCode = row['Mother Postal Code']
+            motherAddTransport = row['Mother Transport Option']
+
+            motherAdd, created = MotherAdd.objects.update_or_create(
+                child=child,
+                defaults={
+                    'motherAddBlock': motherAddBlock,
+                    'motherAddBuilding': motherAddBuilding,
+                    'motherAddStreet': motherAddStreet,
+                    'motherAddUnit': motherAddUnit,
+                    'motherAddPostalCode': motherAddPostalCode,
+                    'motherAddTransport': motherAddTransport,
+                }
+            ) 
+
+            fatherAddBlock = row['Father Block no.']
+            fatherAddBuilding = row['Father Building']
+            fatherAddStreet = row['Father Street']
+            fatherAddUnit = row['Father Unit']
+            fatherAddPostalCode = row['Father Postal Code']
+            fatherAddTransport = row['Father Transport Option']
+
+            fatherAdd, created = FatherAdd.objects.update_or_create(
+                child=child,
+                defaults={
+                    'fatherAddBlock': fatherAddBlock,
+                    'fatherAddBuilding': fatherAddBuilding,
+                    'fatherAddStreet': fatherAddStreet,
+                    'fatherAddUnit': fatherAddUnit,
+                    'fatherAddPostalCode': fatherAddPostalCode,
+                    'fatherAddTransport': fatherAddTransport,
+                }
+            ) 
+
+            address1Line1 = row['Residential Address Line 1']
+            address1Line2 = row['Residential Address Line 2']
+            address1PostalCode = row['Residential Postal Code']
+            address1Transport = row['Residential Transport Option']
+
+            address, created = Address.objects.update_or_create(
+                child=child,
+                defaults={
+                    'address1Line1': address1Line1,
+                    'address1Line2': address1Line2,
+                    'address1PostalCode': address1PostalCode,
+                    'address1Transport': address1Transport,
+                }
+            ) 
+
+            emergency1Relationship = row['EC Relationship 1']
+            emergency1Name = row['EC Name 1']
+            emergency1Mobile = row['EC Mobile 1']
+            emergency1Phone = row['EC Phone 1']
+            emergency1Email = row['EC Email 1']
+
+            emergency, created = Emergency.objects.update_or_create(
+                child=child,
+                defaults={
+                    'emergency1Relationship': emergency1Relationship,
+                    'emergency1Name': emergency1Name,
+                    'emergency1Mobile': emergency1Mobile,
+                    'emergency1Phone': emergency1Phone,
+                    'emergency1Email': emergency1Email,
+                }
+            ) 
             
 # Update Temporary Table
     def update_temporary(self):
@@ -342,7 +506,7 @@ class UploadChildrenCSVData(APIView):
 
             # PrimaryFees
                 tempPrimaryFees_id=primary_fees.id,
-                temp_prieesPaymentMethod=primary_fees.prieesPaymentMethod if primary_fees else None,
+                temp_prifeesPaymentMethod=primary_fees.prifeesPaymentMethod if primary_fees else None,
                 temp_prifeesBankName=primary_fees.prifeesBankName if primary_fees else None,
                 temp_prifeesBankAccHolder=primary_fees.prifeesBankAccHolder if primary_fees else None,
                 temp_prifeesBankAccCode=primary_fees.prifeesBankAccCode if primary_fees else None,
@@ -643,3 +807,29 @@ class UploadChildrenCSVData(APIView):
                 child_id=temp.tempChild.id,
             )
 
+# Read StaffList
+    def read_staff_list(self, staff_csv_file):
+
+        file = staff_csv_file.read().decode('utf-8').splitlines()
+        data = file[1:]
+        reader = csv.DictReader(data) # reader for non-header column, DictReader for header
+
+        for row in reader:
+					
+            staff_name = row['Name']
+            staff_email = row['Email']
+            staff_gender = row['Gender']
+            staff_dob = row['Dob']
+            staff_title = row['Title']
+            staff_mobileNum = row['Mobile Number']
+
+            staff, created = Staff.objects.update_or_create(
+                staff_email=staff_email,
+                defaults={
+                    'staff_name': staff_name,
+                    'staff_gender': staff_gender,
+                    'staff_dob': staff_dob,
+                    'staff_title': staff_title,
+                    'staff_mobileNum': staff_mobileNum,
+                }
+            )             

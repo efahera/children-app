@@ -129,7 +129,7 @@ class TemporarySerializer(serializers.ModelSerializer):
         temp_schoolTransportationNo = models.CharField(source='tempSchool.schoolTransportationNo')
 
     # primary fees serializer
-        temp_prieesPaymentMethod = models.CharField(source='tempPrimaryFees.prieesPaymentMethod')
+        temp_prifeesPaymentMethod = models.CharField(source='tempPrimaryFees.prifeesPaymentMethod')
         temp_prifeesBankName = models.CharField(source='tempPrimaryFees.prifeesBankName')
         temp_prifeesBankAccHolder = models.CharField(source='tempPrimaryFees.prifeesBankAccHolder')
         temp_prifeesBankAccCode = models.CharField(source='tempPrimaryFees.prifeesBankAccCode')
@@ -255,4 +255,10 @@ class CoreServiceChildrenMedicalContactSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = CoreServiceChildrenMedicalContact
+        fields = '__all__'
+
+class StaffListSerializer(serializers.ModelSerializer):
+
+        class Meta:
+        model = Staff
         fields = '__all__'

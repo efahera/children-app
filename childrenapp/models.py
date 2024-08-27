@@ -58,7 +58,7 @@ class School(models.Model):
     child = models.ForeignKey(Child, on_delete=models.CASCADE)
 
 class PrimaryFees(models.Model):
-    prieesPaymentMethod = models.CharField(max_length=100, blank=True)
+    prifeesPaymentMethod = models.CharField(max_length=100, blank=True)
     prifeesBankName = models.CharField(max_length=100, blank=True)
     prifeesBankAccHolder = models.CharField(max_length=100, blank=True)
     prifeesBankAccCode = models.CharField(max_length=100, blank=True)
@@ -256,7 +256,7 @@ class Temporary(models.Model):
         temp_schoolTransportationNo = models.CharField(max_length=100, blank=True)
 
         tempPrimaryFees = models.ForeignKey(PrimaryFees, on_delete=models.CASCADE, blank=True)
-        temp_prieesPaymentMethod = models.CharField(max_length=100, blank=True)
+        temp_prifeesPaymentMethod = models.CharField(max_length=100, blank=True)
         temp_prifeesBankName = models.CharField(max_length=100, blank=True)
         temp_prifeesBankAccHolder = models.CharField(max_length=100, blank=True)
         temp_prifeesBankAccCode = models.CharField(max_length=100, blank=True)
@@ -423,6 +423,15 @@ class CoreServiceChildrenMedicalContact(models.Model):
     # Foreign Key
     CSCMCTemporary = models.ForeignKey(Temporary, on_delete=models.CASCADE, blank=True, null=True)
     CSCMCChild = models.ForeignKey(Child, on_delete=models.CASCADE, blank=True, null=True)
+
+class Staff(models.Model):
+
+    staff_name = models.CharField(max_length=250, blank=True)
+    staff_email = models.CharField(max_length=250, blank=True)
+    staff_gender = models.CharField(max_length=250, blank=True)
+    staff_dob = models.CharField(max_length=250, blank=True)
+    staff_title = models.CharField(max_length=250, blank=True)
+    staff_mobileNum = models.CharField(max_length=250, blank=True)
 
 # class CoreServiceChildren(models.Model):
 
