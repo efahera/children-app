@@ -1,4 +1,5 @@
 from django.db import models
+import uuid
 
 class Child(models.Model):
 
@@ -363,7 +364,7 @@ class Temporary(models.Model):
         temp_emergency1Phone = models.CharField(max_length=100, blank=True)
         temp_emergency1Email = models.CharField(max_length=100, blank=True)
 
-class CoreServiceFamily(models.Model):
+class CoreServiceFamily(models.Model): #CSF
 
     # Parent
     userId = models.CharField(max_length=250, blank=True)
@@ -402,7 +403,7 @@ class CoreServiceFamily(models.Model):
     CSFTemporary = models.ForeignKey(Temporary, on_delete=models.CASCADE, blank=True, null=True)
     CSFChild = models.ForeignKey(Child, on_delete=models.CASCADE, blank=True, null=True)
 
-class CoreServiceChildrenMedicalContact(models.Model):
+class CoreServiceChildrenMedicalContact(models.Model): #CSCMC
 
     userId = models.CharField(max_length=250, blank=True)
     contactType = models.CharField(max_length=250, blank=True)
@@ -433,6 +434,140 @@ class Staff(models.Model):
     staff_title = models.CharField(max_length=250, blank=True)
     staff_mobileNum = models.CharField(max_length=250, blank=True)
 
+class CoreServiceStaff(models.Model): #CSS
+
+    createdAt = models.DateTimeField("createdAt", auto_now_add=True)
+    updatedAt = models.DateTimeField("updatedAt", auto_now=True)
+    tenantId = models.CharField(max_length=250, blank=True)
+    branchId = models.BigIntegerField()
+    firstName = models.CharField(max_length=250, blank=True)
+    lastName = models.CharField(max_length=250, blank=True)
+    email = models.CharField(max_length=254, blank=True)
+    phone = models.CharField(max_length=50, blank=True)
+    gender = models.CharField(max_length=10, blank=True)
+    dob = models.CharField(max_length=10, blank=True)
+    profileImage = models.CharField(max_length=100, blank=True)
+    address = models.CharField(max_length=500, blank=True)
+    state = models.CharField(max_length=50, blank=True)
+    country = models.CharField(max_length=50, blank=True)
+    birthCountry = models.CharField(max_length=100, blank=True)
+    postcode = models.CharField(max_length=10, blank=True)
+    role = models.CharField(max_length=20, blank=True)
+    isWebAccess = models.BooleanField()
+    isMobileAccess = models.BooleanField()
+    doj = models.DateField()
+    isExternal = models.BooleanField()
+    userId = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    isActive = models.BooleanField()
+    isPresentToday = models.BooleanField()
+    isInToday = models.BooleanField()
+    isOutToday = models.BooleanField()
+    staffNRIC = models.CharField(max_length=20, blank=True)
+    creator = models.CharField(max_length=250, blank=True)
+    isMarkedWithdraw = models.BooleanField()
+    withDrawDate = models.CharField(max_length=10, blank=True)
+    withDrawReason = models.CharField(max_length=200, blank=True)
+    isArchived = models.BooleanField()
+
+class CoreServiceClassrooms(models.Model): #CSC
+
+    createdAt = models.DateTimeField("createdAt", auto_now_add=True)
+    updatedAt = models.DateTimeField("updatedAt", auto_now=True)
+    tenantId = models.CharField(max_length=250, blank=True)
+    branchId = models.BigIntegerField()
+    name = models.CharField(max_length=250, blank=True)
+    maxCapacity = models.IntegerField()
+    availableCapacity = models.IntegerField()
+    academyYear = models.CharField(max_length=4, blank=True)
+    isSpecial = models.BooleanField()
+    active = models.BooleanField()
+    isArchived = models.BooleanField()
+    enteredBy = models.CharField(max_length=250, blank=True)
+    programs_id = models.BigIntegerField()
+
+    # Foreign Key
+    # CSC_CoreServicePrograms = models.ForeignKey(CoreServicePrograms, on_delete=models.CASCADE, blank=True, null=True)
+
+class CoreServiceClassroomsStaff(models.Model): #CSCS
+
+    tenantId = models.CharField(max_length=250, blank=True)
+    branchId = models.BigIntegerField()
+    userId = models.CharField(max_length=250, blank=True)
+    assignedBy = models.CharField(max_length=250, blank=True)
+    isActive = models.BooleanField()
+    academyYear = models.CharField(max_length=4, blank=True)
+    academyMonth = models.CharField(max_length=2, blank=True)
+    startDate = models.DateField()
+    endDate = models.DateField()
+    isMarkedWithdraw = models.BooleanField()
+    withDrawDate = models.CharField(max_length=10, blank=True)
+    withDrawReason = models.CharField(max_length=200, blank=True)
+    isMarkedTransfer = models.BooleanField()
+    TransferDate = models.CharField(max_length=10, blank=True)
+    TransferReason = models.CharField(max_length=200, blank=True)
+    createdAt = models.DateTimeField("createdAt", auto_now_add=True)
+    updatedAt = models.DateTimeField("updatedAt", auto_now=True)
+    classroom_id = models.BigIntegerField()
+    staff_id = models.BigIntegerField()
+    isPrimary = models.BooleanField()
+
+    # Foreign Key 
+    CSCS_CoreServiceClassrooms = models.ForeignKey(CoreServiceClassrooms, on_delete=models.CASCADE, blank=True, null=True)
+    CSCS_CoreServiceStaff = models.ForeignKey(CoreServiceStaff, on_delete=models.CASCADE, blank=True, null=True)
+
+class CoreServiceStaffContacts(models.Model): #CSSC
+
+    name = models.CharField(max_length=100, blank=True)
+    image = models.CharField(max_length=100, blank=True)
+    phone = models.CharField(max_length=15, blank=True)
+    email = models.CharField(max_length=254, blank=True)
+    relation = models.CharField(max_length=100, blank=True)
+    gender = models.CharField(max_length=10, blank=True)
+    address = models.CharField(max_length=250, blank=True)
+    state = models.CharField(max_length=50, blank=True)
+    country = models.CharField(max_length=50, blank=True)
+    postcode = models.CharField(max_length=10, blank=True)
+    isActive = models.BooleanField()
+    isEmergency = models.BooleanField()
+    createdAt = models.DateTimeField("createdAt", auto_now_add=True)
+    updatedAt = models.DateTimeField("updatedAt", auto_now=True)
+    enterBy_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    staff_id = models.BigIntegerField()
+
+    # Foreign Key
+    # CSSC_UserServiceAppUser = models.ForeignKey(UserServiceAppUser, on_delete=models.CASCADE, blank=True, null=True)
+    CSSC_CoreServiceStaff = models.ForeignKey(CoreServiceStaff, on_delete=models.CASCADE, blank=True, null=True)
+
+class CoreServiceStaffDocuments(models.Model): #CSSD
+
+    docType = models.CharField(max_length=100, blank=True)
+    document = models.CharField(max_length=100, blank=True)
+    docName = models.CharField(max_length=200, blank=True)
+    docSize = models.CharField(max_length=200, blank=True)
+    docFileType = models.CharField(max_length=100, blank=True)
+    visibleTo = models.CharField(max_length=50, blank=True)
+    isActive = models.BooleanField()
+    createdAt = models.DateTimeField("createdAt", auto_now_add=True)
+    updatedAt = models.DateTimeField("updatedAt", auto_now=True)
+    staff_id = models.BigIntegerField()
+
+    # Foreign Key
+    CSSD_CoreServiceStaff = models.ForeignKey(CoreServiceStaff, on_delete=models.CASCADE, blank=True, null=True)
+    # CSSD_UserServiceAppUser = models.ForeignKey(UserServiceAppUser, on_delete=models.CASCADE, blank=True, null=True)
+
+class CoreServiceStaffMedical(models.Model): #CSSM
+
+    tenantId = models.CharField(max_length=250, blank=True)
+    branchId = models.BigIntegerField()
+    isActive = models.BooleanField()
+    createdAt = models.DateTimeField("createdAt", auto_now_add=True)
+    updatedAt = models.DateTimeField("updatedAt", auto_now=True)
+    staff_id = models.BigIntegerField()
+
+    # Foreign Key
+    CSSM_CoreServiceStaff = models.ForeignKey(CoreServiceStaff, on_delete=models.CASCADE, blank=True, null=True)
+
+    
 # class CoreServiceChildren(models.Model):
 
 #     id
@@ -531,23 +666,6 @@ class Staff(models.Model):
 #     children_id
 #     classroom_id
 #     program_id
-
-# class CoreServiceClassrooms(models.Model):
-
-#     id
-#     createdAt
-#     updatedAt
-#     tenantId
-#     branchId
-#     name
-#     maxCapacity
-#     availableCapacity
-#     academyYear
-#     isSpecial
-#     active
-#     isArchived
-#     enteredBy
-#     programs_id
 
 # class CoreServiceClassroomChildren(models.Model):
 
